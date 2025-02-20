@@ -6,18 +6,25 @@ return {
     local harpoon = require("harpoon")
     harpoon:setup()
 
-    vim.keymap.set("n", "<leader>ha", function() harpoon:list():add() end)
-    vim.keymap.set("n", "<leader>hs", function() harpoon.ui:toggle_quick_menu(harpoon:list()) end)
+    local function safe_harpoon_list()
+      return harpoon:list() or { add = function() end, select = function() end, prev = function() end, next = function() end }
+    end
 
-    vim.keymap.set("n", "<leader>h1", function() harpoon:list():select(1) end)
-    vim.keymap.set("n", "<leader>h2", function() harpoon:list():select(2) end)
-    vim.keymap.set("n", "<leader>h3", function() harpoon:list():select(3) end)
-    vim.keymap.set("n", "<leader>h4", function() harpoon:list():select(4) end)
-    vim.keymap.set("n", "<leader>h5", function() harpoon:list():select(5) end)
-    vim.keymap.set("n", "<leader>h6", function() harpoon:list():select(6) end)
+    vim.keymap.set("n", "<leader>ha", function() safe_harpoon_list():add() end)
+    vim.keymap.set("n", "<leader>hs", function()
+      local hlist = harpoon:list()
+      if hlist then harpoon.ui:toggle_quick_menu(hlist) end
+    end)
+
+    for i = 1, 6 do
+      vim.keymap.set("n", string.format("<leader>h%d", i), function()
+        safe_harpoon_list():select(i)
+      end)
+    end
 
     -- Toggle previous & next buffers stored within Harpoon list
-    vim.keymap.set("n", "<C-S-P>", function() harpoon:list():prev() end)
-    vim.keymap.set("n", "<C-S-N>", function() harpoon:list():next() end)
+    vim.keymap.set("n", "<C-S-P>", function() safe_harpoon_list():prev() end)
+    vim.keymap.set("n", "<C-S-N>", function() safe_harpoon_list():next() end)
   end
 }
+
